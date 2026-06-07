@@ -1,0 +1,78 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/red-chili-pepper-pests-classifier
+
+jobs:
+  train-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.7'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mlflow==2.19.0
+
+      - name: Download dataset
+        run: |
+          pip install kaggle
+          mkdir -p ~/.kaggle
+          echo '${{ secrets.KAGGLE_JSON }}' > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+          kaggle datasets download -d indraagustian/red-chili-pepper-pests-dataset -p ./dataset --unzip
+
+      - name: Run MLflow project
+        run: |
+          cd MLproject
+          mlflow run . --experiment-name red_chili_pepper_pests_ci \
+            -P dataset_dir=../dataset \
+            -P epochs=50 \
+            -P batch_size=32
+
+      - name: Upload MLflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-artifacts
+          path: mlruns/
+          retention-days: 30
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          cd MLproject
+          MODEL_PATH=$(find ../mlruns -name "model" -type d | head -1)
+          if [ -z "$MODEL_PATH" ]; then
+            echo "No model found in mlruns, using default"
+            MODEL_PATH="."
+          fi
+          echo "Building Docker image from: $MODEL_PATH"
+          mlflow models build-docker -m "$MODEL_PATH" -n ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} --enable-mlserver
+          docker tag ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} ${{ env.DOCKER_IMAGE_NAME }}:latest
+          docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
+          echo "Docker image pushed: ${{ env.DOCKER_IMAGE_NAME }}:latest"
