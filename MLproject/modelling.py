@@ -67,7 +67,7 @@ def load_raw_data(dataset_dir):
                 valid_files.append(img_path)
             except ValueError:
                 pass
-        return valid_files, labels
+        return [str(f) for f in valid_files], labels
 
     train_files, train_labels = collect_images_and_labels(os.path.join(dataset_dir, 'train', 'images'))
     val_files_1, val_labels_1 = collect_images_and_labels(os.path.join(dataset_dir, 'val', 'images'))
@@ -98,7 +98,7 @@ def build_augmentation():
 
 
 def parse_image(file_path, label):
-    img = tf.io.read_file(file_path)
+    img = tf.io.read_file(tf.cast(file_path, tf.string))
     img = tf.image.decode_jpeg(img, channels=3)
     img = tf.image.resize(img, list(IMAGE_SIZE))
     img = tf.cast(img, tf.float32) / 255.0
