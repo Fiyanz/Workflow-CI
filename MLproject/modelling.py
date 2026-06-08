@@ -101,7 +101,11 @@ def load_and_preprocess_image(file_path, label):
     """Load image using PIL in eager mode, return numpy arrays."""
     from PIL import Image
     import numpy as np
-    img = Image.open(file_path).convert('RGB')
+    if isinstance(file_path, bytes):
+        file_path = file_path.decode('utf-8')
+    elif hasattr(file_path, 'numpy'):
+        file_path = file_path.numpy().decode('utf-8')
+    img = Image.open(str(file_path)).convert('RGB')
     img = img.resize((224, 224))
     img = np.array(img, dtype=np.float32) / 255.0
     label = int(label)
