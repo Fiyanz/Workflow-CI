@@ -58,8 +58,8 @@ def load_raw_data(dataset_dir):
                     return int(first_line.split()[0])
         raise ValueError(f"Cannot determine class for: {filename}")
 
-    def collect_images_and_labels(image_dir):
-        image_files = sorted(glob.glob(os.path.join(image_dir, '*.jpg')))
+    def collect_images_and_labels(image_dir, max_images=50):
+        image_files = sorted(glob.glob(os.path.join(image_dir, '*.jpg')))[:max_images]
         labels, valid_files = [], []
         for img_path in image_files:
             try:
