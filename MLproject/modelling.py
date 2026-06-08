@@ -2,11 +2,13 @@ import os
 import argparse
 
 import numpy as np
+import sys
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import mlflow
 import mlflow.tensorflow
+from contextlib import nullcontext
 
 IMAGE_SIZE = (224, 224)
 BATCH_SIZE = 32
@@ -75,6 +77,19 @@ def load_raw_data(dataset_dir):
     val_files = val_files_1 + val_files_2
     val_labels = val_labels_1 + val_labels_2
     test_files, test_labels = collect_images_and_labels(os.path.join(dataset_dir, 'test', 'images'))
+
+    # Defensive check: ensure we actually found images before splitting
+    total_found = len(train_files) + len(val_files) + len(test_files)
+    if total_found == 0:
+        print(f"ERROR: No image files found under dataset_dir='{dataset_dir}'.\nPlease verify the dataset path and that image files exist.")
+        # Print directory tree for debugging in CI logs
+        for root, dirs, files in os.walk(dataset_dir):
+            rel = os.path.relpath(root, dataset_dir)
+            print(f"DIR: {rel} -> {len(files)} files")
+            if files:
+                sample = files[:5]
+                print(f"  sample files: {sample}")
+        sys.exit(1)
 
     all_train_files = train_files + val_files
     all_train_labels = train_labels + val_labels
@@ -218,7 +233,22 @@ def main():
 
     mlflow.tensorflow.autolog()
 
-    with mlflow.start_run(run_name='ci_pipeline_run'):
+    # If this script is invoked through `mlflow run`, MLflow already creates
+    # an active run and sets the environment run ID. Starting a new run here
+    # will cause a run ID mismatch error. Detect an active run and only start
+    # a new run when none exists.
+    active = mlflow.active_run()
+    # When invoked via `mlflow run`, MLflow may set an environment run ID
+    # (MLFLOW_RUN_ID). Starting a new run in that case produces a run-id
+    # mismatch error. Detect both an active run and the environment run ID
+    # and avoid calling start_run if either exists.
+    env_run_id = os.environ.get('MLFLOW_RUN_ID')
+    if active is not None or env_run_id:
+        cm = nullcontext()
+    else:
+        cm = mlflow.start_run(run_name='ci_pipeline_run')
+
+    with cm:
         history = model.fit(
             train_ds,
             validation_data=val_ds,
