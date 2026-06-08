@@ -58,7 +58,7 @@ def load_raw_data(dataset_dir):
                     return int(first_line.split()[0])
         raise ValueError(f"Cannot determine class for: {filename}")
 
-    def collect_images_and_labels(image_dir, max_images=50):
+    def collect_images_and_labels(image_dir, max_images=200):
         image_files = sorted(glob.glob(os.path.join(image_dir, '*.jpg')))[:max_images]
         labels, valid_files = [], []
         for img_path in image_files:
@@ -80,7 +80,7 @@ def load_raw_data(dataset_dir):
     all_train_files = train_files + val_files
     all_train_labels = train_labels + val_labels
     train_files_final, val_files_final, train_labels_final, val_labels_final = train_test_split(
-        all_train_files, all_train_labels, test_size=0.15, stratify=all_train_labels, random_state=42
+        all_train_files, all_train_labels, test_size=0.15, random_state=42
     )
 
     class_weights = class_weight.compute_class_weight(
