@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: '3.12.7'
 
-      - name: Install dependencies
+      - name: Install MLflow
         run: |
           python -m pip install --upgrade pip
           pip install mlflow==2.19.0
@@ -38,13 +38,14 @@ jobs:
           chmod 600 ~/.kaggle/kaggle.json
           kaggle datasets download -d indraagustian/red-chili-pepper-pests-dataset -p ./dataset --unzip
 
-      - name: Run MLflow project
+      - name: Install dependencies
+        run: |
+          pip install tensorflow scikit-learn numpy matplotlib seaborn
+
+      - name: Run training
         run: |
           cd MLproject
-          mlflow run . --experiment-name red_chili_pepper_pests_ci \
-            -P dataset_dir=../dataset \
-            -P epochs=50 \
-            -P batch_size=32
+          python modelling.py --dataset-dir ../dataset --epochs 50 --batch_size 32
 
       - name: Upload MLflow artifacts
         uses: actions/upload-artifact@v4

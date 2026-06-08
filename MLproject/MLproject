@@ -1,12 +1,10 @@
 name: red-chili-pepper-pests
 
-conda_env: conda.yaml
-
 entry_points:
   main:
     parameters:
-      dataset_dir: {type: str, default: "/kaggle/input/datasets/indraagustian/red-chili-pepper-pests-dataset"}
+      dataset_dir: {type: str, default: "../dataset"}
       preprocessed_dir: {type: str, default: "red_chili_pepper_pests_preprocessed"}
-      epochs: {type: int, default: 150}
+      epochs: {type: int, default: 50}
       batch_size: {type: int, default: 32}
     command: "python modelling.py --dataset-dir {dataset_dir} --preprocessed-dir {preprocessed_dir} --epochs {epochs} --batch_size {batch_size}"
