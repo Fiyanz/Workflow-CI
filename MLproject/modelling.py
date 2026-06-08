@@ -39,7 +39,6 @@ def load_preprocessed_data(preprocessed_dir):
 def load_raw_data(dataset_dir):
     import glob
     from sklearn.model_selection import train_test_split
-    from sklearn.utils import class_weight
 
     CLASS_MAP = {
         'kutu-daun': 0, 'kutu-kebul': 1, 'thrips': 2, 'thrips-baru': 2, 'ulat': 3,
@@ -83,10 +82,7 @@ def load_raw_data(dataset_dir):
         all_train_files, all_train_labels, test_size=0.15, random_state=42
     )
 
-    class_weights = class_weight.compute_class_weight(
-        'balanced', classes=np.array([0, 1, 2, 3]), y=np.array(train_labels_final)
-    )
-    class_weight_dict = dict(enumerate(class_weights))
+    class_weight_dict = {0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0}
 
     return train_files_final, train_labels_final, val_files_final, val_labels_final, test_files, test_labels, class_weight_dict
 
