@@ -41,7 +41,8 @@ jobs:
 
       - name: Train with MLflow and build Docker image
         run: |
-          mlflow run MLproject --experiment-name red_chili_pepper_pests_ci \
+          # Runner uses pip-installed environment; avoid MLflow creating/activating conda env
+          mlflow run MLproject --no-conda --experiment-name red_chili_pepper_pests_ci \
             -P dataset-dir=./RedChiliPepperPestsDataset \
             -P epochs=1 \
             -P batch_size=32
