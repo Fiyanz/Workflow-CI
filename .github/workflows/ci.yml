@@ -25,27 +25,15 @@ jobs:
         with:
           python-version: '3.12.7'
 
-      - name: Install MLflow
-        run: |
-          python -m pip install --upgrade pip
-          pip install mlflow==2.19.0
-
-      - name: Download dataset
-        run: |
-          pip install kaggle
-          mkdir -p ~/.kaggle
-          echo '${{ secrets.KAGGLE_JSON }}' > ~/.kaggle/kaggle.json
-          chmod 600 ~/.kaggle/kaggle.json
-          kaggle datasets download -d indraagustian/red-chili-pepper-pests-dataset -p ./dataset --unzip
-
       - name: Install dependencies
         run: |
-          pip install tensorflow==2.18.0 tensorboard scikit-learn numpy matplotlib seaborn
+          python -m pip install --upgrade pip
+          pip install mlflow==2.19.0 tensorflow==2.18.0 tensorboard scikit-learn numpy matplotlib seaborn
 
       - name: Train and build Docker image
         run: |
           cd MLproject
-          python modelling.py --dataset-dir ../dataset --epochs 1 --batch_size 256
+          python modelling.py --dataset-dir ../RedChiliPepperPestsDataset --epochs 1 --batch_size 32
           mkdir -p model
           find . -name "*.keras" -exec cp {} model/ \;
           ls -la model/
