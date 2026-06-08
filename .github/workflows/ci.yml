@@ -65,6 +65,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
+          cd MLproject
           docker build -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} -t ${{ env.DOCKER_IMAGE_NAME }}:latest .
           docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
