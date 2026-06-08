@@ -111,13 +111,15 @@ def augment_image(image, label, augmentation):
 
 
 def create_dataset(file_paths, labels, batch_size=BATCH_SIZE, shuffle=False, augment=False, augmentation=None):
+    file_paths = [str(f) for f in file_paths]
+    labels = [int(l) for l in labels]
     ds = tf.data.Dataset.from_tensor_slices((file_paths, labels))
     if shuffle:
         ds = ds.shuffle(buffer_size=len(file_paths), seed=42)
-    ds = ds.map(parse_image, num_parallel_calls=AUTOTUNE)
+    ds = ds.map(lambda fp, lbl: parse_image(tf.cast(fp, tf.string), tf.cast(lbl, tf.int32)), num_parallel_calls=AUTOTUNE)
     ds = ds.batch(batch_size)
     if augment and augmentation is not None:
-        ds = ds.map(lambda x, y: augment_image(x, y, augmentation), num_parallel_calls=AUTOTUNE)
+        ds = ds.map(lambda x, y: augment_image(x, y), num_parallel_calls=AUTOTUNE)
     ds = ds.prefetch(AUTOTUNE)
     return ds
 
