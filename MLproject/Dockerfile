@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY model/ /app/model/
-COPY modelling.py /app/
+COPY inference.py /app/
 
 EXPOSE 8000
 
