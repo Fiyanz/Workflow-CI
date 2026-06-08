@@ -102,7 +102,8 @@ def parse_image(file_path, label):
     img = tf.image.decode_jpeg(img, channels=3)
     img = tf.image.resize(img, list(IMAGE_SIZE))
     img = tf.cast(img, tf.float32) / 255.0
-    label = tf.one_hot(label, depth=NUM_CLASSES)
+    label = tf.cast(tf.cast(label, tf.int32), tf.float32)
+    label = tf.one_hot(tf.cast(label, tf.int32), depth=NUM_CLASSES)
     return img, label
 
 
