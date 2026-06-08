@@ -45,7 +45,7 @@ jobs:
       - name: Run training
         run: |
           cd MLproject
-          python modelling.py --dataset-dir ../dataset --epochs 50 --batch_size 32
+          python modelling.py --dataset-dir ../dataset --epochs 2 --batch_size 16
 
       - name: Upload MLflow artifacts
         uses: actions/upload-artifact@v4
