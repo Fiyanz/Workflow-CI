@@ -1,5 +1,7 @@
 name: red-chili-pepper-pests
 
+conda_env: conda.yaml
+
 entry_points:
   main:
     parameters:

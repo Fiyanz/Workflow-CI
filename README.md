@@ -11,7 +11,7 @@ CI pipeline yang menjalankan training model secara otomatis menggunakan MLflow P
 ```
 ├── MLproject/
 │   ├── MLproject          # MLflow Project definition
-│   ├── conda.yaml         # Conda environment
+│   ├── conda.yaml         # MLflow-managed Conda environment
 │   └── modelling.py       # Training script
 ├── .github/workflows/ci.yml  # GitHub Actions CI workflow
 └── README.md
