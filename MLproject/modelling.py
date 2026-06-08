@@ -181,12 +181,8 @@ def main():
     mlflow.set_tracking_uri(os.environ.get('MLFLOW_TRACKING_URI', 'file:./mlruns'))
     mlflow.set_experiment('red_chili_pepper_pests_ci')
 
-    if os.path.exists(args.preprocessed_dir):
-        (train_files, train_labels, val_files, val_labels,
-         test_files, test_labels, class_weight_dict) = load_preprocessed_data(args.preprocessed_dir)
-    else:
-        (train_files, train_labels, val_files, val_labels,
-         test_files, test_labels, class_weight_dict) = load_raw_data(args.dataset_dir)
+    (train_files, train_labels, val_files, val_labels,
+     test_files, test_labels, class_weight_dict) = load_raw_data(args.dataset_dir)
 
     augmentation = build_augmentation()
     train_ds = create_dataset(train_files, train_labels, batch_size=args.batch_size, shuffle=True, augment=True, augmentation=augmentation)
