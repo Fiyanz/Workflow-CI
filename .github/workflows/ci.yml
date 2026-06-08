@@ -45,9 +45,9 @@ jobs:
       - name: Train and build Docker image
         run: |
           cd MLproject
-          python modelling.py --dataset-dir ../dataset --epochs 2 --batch_size 10
+          python modelling.py --dataset-dir ../dataset --epochs 2 --batch_size 128
           mkdir -p model
-          cp model_pest_classification.keras model/ 2>/dev/null || find . -name "*.keras" -exec cp {} model/ ;
+          find . -name "*.keras" -exec cp {} model/ \;
           ls -la model/
           docker build -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} -t ${{ env.DOCKER_IMAGE_NAME }}:latest .
           docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
