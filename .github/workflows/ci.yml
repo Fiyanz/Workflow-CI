@@ -28,7 +28,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mlflow==2.19.0 tensorflow==2.18.0 tensorboard scikit-learn numpy matplotlib seaborn
+          # Pin TensorFlow to a version compatible with MLflow autologging
+          pip install mlflow==2.19.0 'tensorflow==2.18.0' tensorboard scikit-learn numpy matplotlib seaborn
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -40,10 +41,15 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Train with MLflow and build Docker image
+        env:
+          # reduce TF info/warnings (including AVX2 messages) in CI logs
+          TF_CPP_MIN_LOG_LEVEL: '2'
         run: |
           # Runner uses pip-installed environment; avoid MLflow creating/activating conda env
+          # Pass an absolute dataset path so MLflow run (which may copy the project)
+          # can access the dataset reliably.
           mlflow run MLproject --env-manager local --experiment-name red_chili_pepper_pests_ci \
-            -P dataset-dir=./RedChiliPepperPestsDataset \
+            -P dataset-dir=${{ github.workspace }}/RedChiliPepperPestsDataset \
             -P epochs=1 \
             -P batch_size=32
           MODEL_PATH=$(find mlruns -name "*.keras" -type f | head -1 | xargs dirname)
