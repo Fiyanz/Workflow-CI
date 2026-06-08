@@ -3,8 +3,7 @@ name: red-chili-pepper-pests
 entry_points:
   main:
     parameters:
-      dataset_dir: {type: str, default: "../dataset"}
-      preprocessed_dir: {type: str, default: "red_chili_pepper_pests_preprocessed"}
-      epochs: {type: int, default: 50}
+      dataset-dir: {type: str, default: "./RedChiliPepperPestsDataset"}
+      epochs: {type: int, default: 1}
       batch_size: {type: int, default: 32}
-    command: "python modelling.py --dataset-dir {dataset_dir} --preprocessed-dir {preprocessed_dir} --epochs {epochs} --batch_size {batch_size}"
+    command: "python modelling.py --dataset-dir {dataset-dir} --epochs {epochs} --batch_size {batch_size}"

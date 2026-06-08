@@ -39,13 +39,16 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Train and build Docker image
+      - name: Train with MLflow and build Docker image
         run: |
+          mlflow run MLproject --experiment-name red_chili_pepper_pests_ci \
+            -P dataset-dir=./RedChiliPepperPestsDataset \
+            -P epochs=1 \
+            -P batch_size=32
+          MODEL_PATH=$(find mlruns -name "*.keras" -type f | head -1 | xargs dirname)
+          echo "MODEL_PATH=$MODEL_PATH"
+          cp -r "$MODEL_PATH" MLproject/model
           cd MLproject
-          python modelling.py --dataset-dir ../RedChiliPepperPestsDataset --epochs 1 --batch_size 32
-          mkdir -p model
-          find . -name "*.keras" -exec cp {} model/ \;
-          ls -la model/
           docker build -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} -t ${{ env.DOCKER_IMAGE_NAME }}:latest .
           docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
