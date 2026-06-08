@@ -40,7 +40,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install tensorflow scikit-learn numpy matplotlib seaborn
+          pip install tensorflow==2.18.0 tensorboard scikit-learn numpy matplotlib seaborn
 
       - name: Run training
         run: |
