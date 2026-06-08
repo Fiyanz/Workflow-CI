@@ -97,31 +97,41 @@ def build_augmentation():
     ], name="data_augmentation")
 
 
-def parse_image(file_path, label):
-    img = tf.io.read_file(file_path)
-    img = tf.image.decode_jpeg(img, channels=3)
-    img = tf.image.resize(img, list(IMAGE_SIZE))
-    img = tf.cast(img, tf.float32) / 255.0
-    label = tf.one_hot(tf.cast(label, tf.int64), depth=NUM_CLASSES)
+def load_and_preprocess_image(file_path, label):
+    """Load image using PIL in eager mode, return numpy arrays."""
+    from PIL import Image
+    import numpy as np
+    img = Image.open(file_path).convert('RGB')
+    img = img.resize((224, 224))
+    img = np.array(img, dtype=np.float32) / 255.0
+    label = int(label)
     return img, label
 
 
 def create_dataset(file_paths, labels, batch_size=BATCH_SIZE, shuffle=False, augment=False, augmentation=None):
-    file_paths = [str(f) for f in file_paths]
-    labels = [int(l) for l in labels]
+    # Ensure plain Python strings and ints
+    file_paths = [str(f).strip() for f in np.array(file_paths).flatten()]
+    labels = [int(float(l)) for l in np.array(labels).flatten()]
+
+    # Load all images eagerly using tf.py_function
+    def load_fn(fp, lbl):
+        img, lbl = tf.py_function(
+            func=load_and_preprocess_image,
+            inp=[fp, lbl],
+            Tout=(tf.float32, tf.int32)
+        )
+        img.set_shape([224, 224, 3])
+        lbl.set_shape([])
+        lbl = tf.one_hot(lbl, depth=NUM_CLASSES)
+        return img, lbl
 
     ds = tf.data.Dataset.from_tensor_slices((file_paths, labels))
     if shuffle:
         ds = ds.shuffle(buffer_size=len(file_paths), seed=42)
-
-    # FIX 1: hapus tf.cast, langsung pakai parse_image
-    ds = ds.map(parse_image, num_parallel_calls=AUTOTUNE)
+    ds = ds.map(load_fn, num_parallel_calls=AUTOTUNE)
     ds = ds.batch(batch_size)
-
-    # FIX 2: pass augmentation ke dalam lambda
     if augment and augmentation is not None:
         ds = ds.map(lambda x, y: (augmentation(x, training=True), y), num_parallel_calls=AUTOTUNE)
-
     ds = ds.prefetch(AUTOTUNE)
     return ds
 
