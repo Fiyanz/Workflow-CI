@@ -65,15 +65,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          cd MLproject
-          MODEL_PATH=$(find ../mlruns -name "model" -type d | head -1)
-          if [ -z "$MODEL_PATH" ]; then
-            echo "No model found in mlruns, using default"
-            MODEL_PATH="."
-          fi
-          echo "Building Docker image from: $MODEL_PATH"
-          mlflow models build-docker -m "$MODEL_PATH" -n ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} --enable-mlserver
-          docker tag ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} ${{ env.DOCKER_IMAGE_NAME }}:latest
+          docker build -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} -t ${{ env.DOCKER_IMAGE_NAME }}:latest .
           docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
           echo "Docker image pushed: ${{ env.DOCKER_IMAGE_NAME }}:latest"
